@@ -3,6 +3,7 @@ import json
 import requests
 import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram import KeyboardButton, ReplyKeyboardMarkup
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -29,7 +30,11 @@ def explore_request(loc):
     return json.loads(resp.text)
 
 def start(update, context):
-    update.message.reply_text('Hi! I am an explorer bot! \nI may not be finished but let us try!\nSend me your location!')
+    keys = [KeyboardButton("Coffee ☕"),
+            KeyboardButton("Beer 🍺"),
+            KeyboardButton("Dinner 🥗")]
+    markup = ReplyKeyboardMarkup(keys)
+    update.message.reply_text("Hi! I'm an explorer bot! \n! What are you up to?", reply_markup=markup)
 
 def help(update, context):
     update.message.reply_text('Right now I only reply with 5 nearby coffee shops to a sent location but my strength will grow!')
@@ -43,9 +48,6 @@ def location(update, context):
         update.message.reply_text("Sorry, something went wrong...")
     else:
         body = resp['response']
-        # not sure if it's useful
-        # if 'warning' in body:
-        #     update.message.reply_text(f"Warning: {body['warning']['text']}")
         groups = body['groups']
         try:
             recommended = next(g for g in groups if g['name'] == 'recommended')
