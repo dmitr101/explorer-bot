@@ -3,6 +3,7 @@ import json
 import requests
 import os
 import traceback
+from math import floor, ceil, sqrt
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Location
 
@@ -13,12 +14,21 @@ CLIENT_SECRET = os.environ.get('FS_CLIENT_SECRET', None)
 
 BUTTON_COFFEE_TEXT = "Coffee ☕"
 BUTTON_BEER_TEXT = "Beer 🍺"
-BUTTON_DINNER_TEXT = "Dinner 🥗"
+BUTTON_DINNER_TEXT = "Dinner 🍷"
 VARIANT_BUTTONS = [BUTTON_COFFEE_TEXT, BUTTON_BEER_TEXT, BUTTON_DINNER_TEXT]
-DISTANCE_BUTTONS = ['150', '350', '1000']
+DISTANCE_BUTTONS = ['250', '500', '1000', '5000']
 
 def to_reply_keyboard(arr, request_location = False):
-    keys = [[KeyboardButton(element, request_location=request_location)] for element in arr]
+    grid_side = sqrt(len(arr))
+    grid_width = floor(grid_side)
+    grid_height = ceil(grid_side)
+    keys = []
+    for i in range(grid_height):
+        row = []
+        for j in range(grid_width):
+            lin_index = i * grid_width + j
+            row.append(KeyboardButton(arr[lin_index], request_location=request_location))
+        keys.append(row)
     return ReplyKeyboardMarkup(keys, one_time_keyboard=True)
 
 def invert_dict(in_dict):
@@ -112,6 +122,14 @@ def start(update, context):
     open_sessions[update.message.chat.id] = Session()
     update.message.reply_text("Hi! I'm an explorer bot! \nWhat are you up to?", reply_markup=to_reply_keyboard(VARIANT_BUTTONS))
 
+def reset(update, context):
+    chat_id = update.message.chat.id
+    if chat_id in open_sessions:
+        open_sessions.pop(chat_id)
+        update.message.reply_text("Successfuly reseted your search!", reply_markup=ReplyKeyboardRemove())
+    else:
+        update.message.reply_text("There is nothing to reset!", reply_markup=ReplyKeyboardRemove())
+
 def help(update, context):
     update.message.reply_text('I will recommend you a place nearby!\nTry /start or send me your location or maybe even just try typing what do you want, like coffee or food.')
 
@@ -174,6 +192,7 @@ def main():
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
+    dp.add_handler(CommandHandler("reset", reset))
     dp.add_handler(MessageHandler(Filters.text, text))
     dp.add_handler(MessageHandler(Filters.location, location))
     dp.add_error_handler(error)
