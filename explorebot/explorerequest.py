@@ -7,4 +7,4 @@ class ExploreRequest(object):
         self.location = location
 
     def is_valid(self):
-        return self.query != None and self.radius != None and self.location != None`
+        return self.query != None and self.radius != None and self.location != None
