@@ -7,6 +7,7 @@ from explorebot.explorerequest import ExploreRequest
 CLIENT_ID = os.environ.get('FS_CLIENT_ID', None)
 CLIENT_SECRET = os.environ.get('FS_CLIENT_SECRET', None)
 
+
 @dataclass
 class Place:
     name: str

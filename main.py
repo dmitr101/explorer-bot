@@ -1,17 +1,15 @@
 import os
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import ReplyKeyboardRemove
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from explorebot.explorerequestpipeline import ExploreRequestPipeline
-from explorebot.variants import is_valid_variant
-import explorebot.foursquare as fs
+from explorebot.foursquare import CLIENT_ID, CLIENT_SECRET
 
 def start(update, context):
-    ExploreRequestPipeline.start_empty(update.message)
+    ExploreRequestPipeline.start_empty(update.message.bot, update.message.chat.id)
 
 def reset(update, context):
-    chat_id = update.message.chat.id
-    if ExploreRequestPipeline.is_started(update.message):
-        ExploreRequestPipeline.stop(update.message)
+    if ExploreRequestPipeline.is_started(update.message.chat.id):
+        ExploreRequestPipeline.stop(update.message.chat.id)
         update.message.reply_text("Successfuly reseted your search!", reply_markup=ReplyKeyboardRemove())
     else:
         update.message.reply_text("There is nothing to reset!", reply_markup=ReplyKeyboardRemove())
@@ -21,19 +19,10 @@ def help(update, context):
         'I will recommend you a place nearby!\nTry /start or send me your location or maybe even just try typing what do you want, like coffee or food.')
 
 def text(update, context):
-    if ExploreRequestPipeline.is_started(update.message):
-        ExploreRequestPipeline.handle_msg(update.message)
-    else:
-        if is_valid_variant(update.message.text):
-            ExploreRequestPipeline.start_from_variant(update.message)
-        else:
-            update.message.reply_text("I do not really undestand you...", reply_markup=ReplyKeyboardRemove())
+    ExploreRequestPipeline.handle_message(update.message)
 
 def location(update, context):
-    if ExploreRequestPipeline.is_started(update.message):
-        ExploreRequestPipeline.handle_msg(update.message)
-    else:
-        ExploreRequestPipeline.start_from_location(update.message)
+    ExploreRequestPipeline.handle_message(update.message)
 
 def error(update, context):
     print(f"Update {update} caused error {context.error}")
@@ -44,10 +33,10 @@ def main():
     if BOT_TOKEN == None:
         print("Couldn't retrieve TELEGRAM_BOT_TOKEN")
         can_launch = False
-    if fs.CLIENT_ID == None:
+    if CLIENT_ID == None:
         print("Couldn't retrieve FS_CLIENT_ID envvar")
         can_launch = False
-    if fs.CLIENT_SECRET == None:
+    if CLIENT_SECRET == None:
         print("Couldn't retrieve FS_CLIENT_SECRET envvar")
         can_launch = False
     if not can_launch:

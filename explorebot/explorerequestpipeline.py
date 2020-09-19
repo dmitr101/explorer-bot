@@ -2,7 +2,7 @@ from telegram import Message, ReplyKeyboardRemove
 
 from explorebot.explorerequest import ExploreRequest
 from explorebot.explorerequeststage import VariantRequestStage, LocationRequestStage, RadiusRequestStage
-from explorebot.variants import variant_to_query
+from explorebot.variants import variant_to_query, is_valid_variant
 
 import explorebot.foursquare as fs
 
@@ -69,12 +69,12 @@ class ExploreRequestPipeline(object):
         self._start_current_stage()
 
     @staticmethod
-    def start_empty(msg, erp_dict = _open_erps):
+    def start_empty(bot, chat_id, erp_dict = _open_erps):
         erp_dict[msg.chat.id] = ExploreRequestPipeline(
             erp_dict=erp_dict,
             request=ExploreRequest(),
-            bot=msg.bot,
-            chat_id=msg.chat.id,
+            bot=bot,
+            chat_id=chat_id,
             stages=[VariantRequestStage(), RadiusRequestStage(), LocationRequestStage()])
 
     @staticmethod
@@ -96,13 +96,25 @@ class ExploreRequestPipeline(object):
             stages=[RadiusRequestStage(), LocationRequestStage()])
 
     @staticmethod
-    def is_started(msg, erp_dict = _open_erps):
-        return msg.chat.id in erp_dict
+    def start_from_message(msg, erp_dict = _open_erps):
+        if msg.location != None:
+            ExploreRequestPipeline.start_from_location(msg, erp_dict)
+        elif is_valid_variant(msg.text):
+            ExploreRequestPipeline.start_from_variant(msg, erp_dict)
+        else:
+            msg.reply_text("I do not really understand you...", reply_markup=ReplyKeyboardRemove())
 
     @staticmethod
-    def stop(msg, erp_dict = _open_erps):
-        return erp_dict.pop(msg.chat.id)
+    def is_started(chat_id, erp_dict = _open_erps):
+        return chat_id in erp_dict
 
     @staticmethod
-    def handle_msg(msg, erp_dict = _open_erps):
-        return erp_dict.get(msg.chat.id, None).handle(msg)
+    def stop(chat_id, erp_dict = _open_erps):
+        erp_dict.pop(chat_id)
+
+    @staticmethod
+    def handle_message(msg, erp_dict = _open_erps):
+        if ExploreRequestPipeline.is_started(msg.chat.id):
+            erp_dict.get(msg.chat.id, None).handle(msg)
+        else:
+            ExploreRequestPipeline.start_from_message(msg, erp_dict)

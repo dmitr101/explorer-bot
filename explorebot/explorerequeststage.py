@@ -2,7 +2,7 @@ from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, L
 from explorebot.util import to_reply_keyboard
 from explorebot.variants import all_variant_buttons, all_distance_buttons, is_valid_distance, is_valid_variant, variant_to_query
 
-
+#Maybe add ABC(abstract base class) support
 class VariantRequestStage(object):
     def __init__(self):
         self.req = None

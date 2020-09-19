@@ -1,6 +1,7 @@
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 from math import sqrt, floor, ceil
 
+
 def to_reply_keyboard(arr, request_location=False):
     grid_side = sqrt(len(arr))
     grid_width = floor(grid_side)
