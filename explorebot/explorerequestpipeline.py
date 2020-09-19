@@ -70,7 +70,7 @@ class ExploreRequestPipeline(object):
 
     @staticmethod
     def start_empty(bot, chat_id, erp_dict = _open_erps):
-        erp_dict[msg.chat.id] = ExploreRequestPipeline(
+        erp_dict[chat_id] = ExploreRequestPipeline(
             erp_dict=erp_dict,
             request=ExploreRequest(),
             bot=bot,
