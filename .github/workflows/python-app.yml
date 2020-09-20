@@ -11,9 +11,7 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
@@ -38,8 +36,21 @@ jobs:
           pkill python3
           rm -r explorer-bot
           git clone https://github.com/dmitr101/explorer-bot.git
-          cd explorer-bot
-          nohup python3 main.py &
+          nohup explorer-bot/python3 main.py &
         host: ${{ secrets.HOST }}
         user: root
-        pass: ${{ secrets.PASS }} 
+        pass: ${{ secrets.PASS }}
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: fifsky/ssh-action@master
+        with:
+          command: |
+            pkill python3
+            rm -r explorer-bot
+            git clone https://github.com/dmitr101/explorer-bot.git
+            nohup explorer-bot/python3 main.py &
+          host: ${{ secrets.HOST }}
+          user: root
+          pass: ${{ secrets.PASS }}
