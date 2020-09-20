@@ -49,8 +49,8 @@ jobs:
           command: |
             pkill python3
             rm -r explorer-bot
-            git clone https://github.com/dmitr101/explorer-bot.git
-            nohup explorer-bot/python3 main.py &
+            git clone https://github.com/dmitr101/explorer-bot.git &
+            wait; nohup explorer-bot/python3 main.py &
           host: ${{ secrets.HOST }}
           user: root
           pass: ${{ secrets.PASS }}
