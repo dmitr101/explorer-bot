@@ -50,7 +50,7 @@ jobs:
             pkill python3
             rm -r explorer-bot
             git clone https://github.com/dmitr101/explorer-bot.git &
-            wait; nohup explorer-bot/python3 main.py &
+            wait; nohup python3 explorer-bot/main.py &
           host: ${{ secrets.HOST }}
           user: root
           pass: ${{ secrets.PASS }}
