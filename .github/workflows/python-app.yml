@@ -29,17 +29,6 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Deploy to VPS
-      uses: fifsky/ssh-action@master
-      with:
-        command: |
-          pkill python3
-          rm -r explorer-bot
-          git clone https://github.com/dmitr101/explorer-bot.git
-          nohup explorer-bot/python3 main.py &
-        host: ${{ secrets.HOST }}
-        user: root
-        pass: ${{ secrets.PASS }}
   deploy:
     runs-on: ubuntu-latest
     steps:
@@ -49,6 +38,9 @@ jobs:
           command: |
             pkill python3
             rm -r explorer-bot
+            export TELEGRAM_BOT_TOKEN=${{secrets.BOT_TOKEN}}
+            export FS_CLIENT_ID=${{secrets.FS_CLIENT_ID}}
+            export FS_CLIENT_SECRET=${{secrets.FS_CLIENT_SECRET}}
             git clone https://github.com/dmitr101/explorer-bot.git &
             wait; nohup python3 explorer-bot/main.py &
           host: ${{ secrets.HOST }}
