@@ -43,6 +43,7 @@ jobs:
             export FS_CLIENT_SECRET=${{secrets.FS_CLIENT_SECRET}}
             git clone https://github.com/dmitr101/explorer-bot.git &
             wait; nohup python3 explorer-bot/main.py &
+            exit
           host: ${{ secrets.HOST }}
           user: root
           pass: ${{ secrets.PASS }}
