@@ -39,8 +39,7 @@ jobs:
           export FS_CLIENT_ID=${{secrets.FS_CLIENT_ID}}
           export FS_CLIENT_SECRET=${{secrets.FS_CLIENT_SECRET}}
           git clone https://github.com/dmitr101/explorer-bot.git &
-          wait; nohup python3 explorer-bot/main.py > dev/null &
-          exit
+          wait; nohup python3 explorer-bot/main.py > botlog.txt &
         host: ${{ secrets.HOST }}
         user: root
         pass: ${{ secrets.PASS }}
