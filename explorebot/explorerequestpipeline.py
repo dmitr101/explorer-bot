@@ -6,11 +6,10 @@ from explorebot.variants import variant_to_query, is_valid_variant
 
 import explorebot.foursquare as fs
 
-_open_erps = {}
+_global_erp_dict = {}
 
 class ExploreRequestPipeline(object):
-    def __init__(self, erp_dict, request, bot, chat_id, stages):
-        self._erp_dict = erp_dict
+    def __init__(self, request, bot, chat_id, stages):
         self._request = request
         self._bot = bot
         self._chat_id = chat_id
@@ -32,7 +31,7 @@ class ExploreRequestPipeline(object):
         self._current_stage().start(self._request, self._bot, self._chat_id)
 
     def _pop_self_from_dict(self):
-        self._erp_dict.pop(self._chat_id)
+        _global_erp_dict.pop(self._chat_id)
 
     def _finish_success(self):
         self._pop_self_from_dict()
@@ -69,52 +68,49 @@ class ExploreRequestPipeline(object):
         self._start_current_stage()
 
     @staticmethod
-    def start_empty(bot, chat_id, erp_dict = _open_erps):
-        erp_dict[chat_id] = ExploreRequestPipeline(
-            erp_dict=erp_dict,
+    def start_empty(bot, chat_id):
+        _global_erp_dict[chat_id] = ExploreRequestPipeline(
             request=ExploreRequest(),
             bot=bot,
             chat_id=chat_id,
             stages=[VariantRequestStage(), RadiusRequestStage(), LocationRequestStage()])
 
     @staticmethod
-    def start_from_location(msg, erp_dict = _open_erps):
-        erp_dict[msg.chat.id] = ExploreRequestPipeline(
-            erp_dict=erp_dict,
+    def start_from_location(msg):
+        _global_erp_dict[msg.chat.id] = ExploreRequestPipeline(
             request=ExploreRequest(location=msg.location),
             bot=msg.bot,
             chat_id=msg.chat.id,
             stages=[VariantRequestStage(), RadiusRequestStage()])
 
     @staticmethod
-    def start_from_variant(msg, erp_dict = _open_erps):
-        erp_dict[msg.chat.id] = ExploreRequestPipeline(
-            erp_dict=erp_dict,
+    def start_from_variant(msg):
+        _global_erp_dict[msg.chat.id] = ExploreRequestPipeline(
             request=ExploreRequest(query=variant_to_query(msg.text)),
             bot=msg.bot,
             chat_id=msg.chat.id,
             stages=[RadiusRequestStage(), LocationRequestStage()])
 
     @staticmethod
-    def start_from_message(msg, erp_dict = _open_erps):
+    def start_from_message(msg):
         if msg.location != None:
-            ExploreRequestPipeline.start_from_location(msg, erp_dict)
+            ExploreRequestPipeline.start_from_location(msg)
         elif is_valid_variant(msg.text):
-            ExploreRequestPipeline.start_from_variant(msg, erp_dict)
+            ExploreRequestPipeline.start_from_variant(msg)
         else:
             msg.reply_text("I do not really understand you...", reply_markup=ReplyKeyboardRemove())
 
     @staticmethod
-    def is_started(chat_id, erp_dict = _open_erps):
-        return chat_id in erp_dict
+    def is_started(chat_id, ):
+        return chat_id in _global_erp_dict
 
     @staticmethod
-    def stop(chat_id, erp_dict = _open_erps):
-        erp_dict.pop(chat_id)
+    def stop(chat_id):
+        _global_erp_dict.pop(chat_id)
 
     @staticmethod
-    def handle_message(msg, erp_dict = _open_erps):
+    def handle_message(msg):
         if ExploreRequestPipeline.is_started(msg.chat.id):
-            erp_dict.get(msg.chat.id, None).handle(msg)
+            _global_erp_dict.get(msg.chat.id, None).handle(msg)
         else:
-            ExploreRequestPipeline.start_from_message(msg, erp_dict)
+            ExploreRequestPipeline.start_from_message(msg)
